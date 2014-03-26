@@ -1,3 +1,5 @@
+ENV["RACK_ENV"] = 'test' # Forcing test environment needed before loading mongoid.yml
+
 require "rubygems"
 require "bundler/setup"
 
@@ -9,7 +11,7 @@ CONFIG = { :authorization => true, :history => true }
 if rand > 0.5
   puts 'Mongoid'
   require 'mongoid'
-  Mongoid.load!(File.expand_path("../mongoid.yml", __FILE__), :test)
+  Mongoid.load!(File.expand_path("../mongoid.yml", __FILE__))
   require File.expand_path("../../lib/mongo_followable", __FILE__)
   require File.expand_path("../mongoid/user", __FILE__)
   require File.expand_path("../mongoid/group", __FILE__)
