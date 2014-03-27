@@ -1,6 +1,7 @@
 class Follow
   if defined?(Mongoid)
     include Mongoid::Document
+    include Mongoid::Timestamps
 
     field :f_type, :type => String
     field :f_id, :type => String
@@ -9,6 +10,8 @@ class Follow
 
     key :f_type, :type => String
     key :f_id, :type => String
+
+    timestamps!
   end
 
   belongs_to :followable, :polymorphic => true

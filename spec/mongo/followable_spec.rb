@@ -127,6 +127,21 @@ describe Mongo::Followable do
         g.followers_count_by_type("group").should == 0
       end
     end
+
+    context "timestamps" do
+      let!(:v) { User.create! }
+      let!(:w) { User.create! }
+      let!(:g) { Group.create! }
+
+      it "following a user" do
+        u.follow(v, g)
+        Follow.count.should > 0
+        Follow.all.each do |f|
+          f.updated_at.should_not == nil
+          f.created_at.should_not == nil
+        end
+      end
+    end
   end
 
   describe Group do
