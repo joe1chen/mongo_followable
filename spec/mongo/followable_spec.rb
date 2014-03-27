@@ -169,6 +169,34 @@ describe Mongo::Followable do
         b.all_followers.should be_empty
       end
     end
+
+    context "indexes" do
+      context "when indexes are created" do
+        before do
+          if Mongo::Followable.mongoid2? || Mongo::Followable.mongoid3?
+            Follow.create_indexes
+          end
+        end
+
+        after do
+          if Mongo::Followable.mongoid2?
+            Follow.collection.drop_indexes
+          elsif Mongo::Followable.mongoid3?
+            Follow.remove_indexes
+          end
+        end
+
+        let!(:a) { User.create! }
+        let!(:b) { User.create! }
+
+        it "should not have any errors" do
+          a.follow b
+          b.follow a
+          a.unfollow b
+          b.unfollow a
+        end
+      end
+    end
   end
 
   describe Group do
