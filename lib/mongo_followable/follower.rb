@@ -87,7 +87,7 @@ module Mongo
      #   => true
 
      def follower_of?(model)
-       0 < Follow.where(followable_id: model.id, followable_type: model.class.to_s, following_id: self.id, following_type: self.class.to_s).count
+       0 < model.followers.by_follower_model(self).count
      end
 
      # return true if self is following some models
@@ -129,7 +129,7 @@ module Mongo
 
        models.each do |model|
          unless model == self or self.follower_of?(model) or model.followee_of?(self)
-           Follow.create!(following: self, followable: model)
+           self.followees.create!(followable: model)
 
            model.followed_history << self.class.name + '_' + self.id.to_s if model.respond_to? :followed_history
            self.follow_history << model.class.name + '_' + model.id.to_s if self.respond_to? :follow_history
@@ -149,7 +149,7 @@ module Mongo
 
        models.each do |model|
          unless model == self or !self.follower_of?(model) or !model.followee_of?(self)
-           f = Follow.where(followable_id: model.id, followable_type: model.class.to_s, following_id: self.id, following_type: self.class.to_s).first
+           f = model.followers.by_follower_model(self).first
            f.destroy if f
          end
        end
