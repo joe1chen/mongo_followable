@@ -6,8 +6,10 @@ module Mongo
      included do |base|
        if defined?(Mongoid)
          base.has_many :followees, :class_name => "Follow", :as => :following, :dependent => :destroy
+         base.has_many :f_followees, :class_name => "Follow", :as => :f, :dependent => :destroy
        elsif defined?(MongoMapper)
          base.many :followees, :class_name => "Follow", :as => :following, :dependent => :destroy
+         base.many :f_followees, :class_name => "Follow", :as => :f, :dependent => :destroy
        end
      end
 
@@ -129,8 +131,8 @@ module Mongo
 
        models.each do |model|
          unless model == self or self.follower_of?(model) or model.followee_of?(self)
-           model.followers.create!(:f_type => self.class.name, :f_id => self.id.to_s)
-           self.followees.create!(:f_type => model.class.name, :f_id => model.id.to_s)
+           model.followers.create!(f: self)
+           self.followees.create!(f: model)
 
            model.followed_history << self.class.name + '_' + self.id.to_s if model.respond_to? :followed_history
            self.follow_history << model.class.name + '_' + model.id.to_s if self.respond_to? :follow_history

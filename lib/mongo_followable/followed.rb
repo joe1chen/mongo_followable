@@ -6,8 +6,10 @@ module Mongo
       included do |base|
         if defined?(Mongoid)
           base.has_many :followers, :class_name => "Follow", :as => :followable, :dependent => :destroy
+          base.has_many :f_followers, :class_name => "Follow", :as => :f, :dependent => :destroy
         elsif defined?(MongoMapper)
           base.many :followers, :class_name => "Follow", :as => :followable, :dependent => :destroy
+          base.many :f_followers, :class_name => "Follow", :as => :f, :dependent => :destroy
         end
       end
 

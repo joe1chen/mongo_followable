@@ -142,6 +142,33 @@ describe Mongo::Followable do
         end
       end
     end
+
+    context "on destroy" do
+      let!(:a) { User.create! }
+      let!(:b) { User.create! }
+
+      it "should clean up follower's followees when followee is destroyed" do
+        a.follow b
+        b.destroy
+
+        a.reload
+
+        # Followees should have been cleaned up after destroy.
+        a.followees.count.should == 0
+        a.all_followees.should be_empty
+      end
+
+      it "should clean up followee's followers when follower is destroyed" do
+        a.follow b
+        a.destroy
+
+        b.reload
+
+        # Followers should have been cleaned up after destroy.
+        b.followers.count.should == 0
+        b.all_followers.should be_empty
+      end
+    end
   end
 
   describe Group do
