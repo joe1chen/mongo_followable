@@ -1,12 +1,7 @@
 test:
   # Mongoid 3
-  #sessions:
-  #  default:
-  #    database: mongo_followable_test
-  #    hosts:
-  #      - localhost:27017
-
-  # Mongoid 2
-  host: localhost
-  database: mongo_followable_test
-  logger: false
+  sessions:
+    default:
+      database: mongo_followable_test
+      hosts:
+        - localhost:27017

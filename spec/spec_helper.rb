@@ -11,11 +11,15 @@ CONFIG = { :authorization => true, :history => true }
 if rand > 0.5
   puts 'Mongoid'
   require 'mongoid'
-  Mongoid.load!(File.expand_path("../mongoid.yml", __FILE__))
   require File.expand_path("../../lib/mongo_followable", __FILE__)
   require File.expand_path("../mongoid/user", __FILE__)
   require File.expand_path("../mongoid/group", __FILE__)
   require File.expand_path("../mongoid/childuser", __FILE__)
+  if Mongo::Followable.mongoid2?
+    Mongoid.load!(File.expand_path("../mongoid2.yml", __FILE__))
+  else
+    Mongoid.load!(File.expand_path("../mongoid.yml", __FILE__))
+  end
 else
   puts 'MongoMapper'
   require 'mongo_mapper'

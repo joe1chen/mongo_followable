@@ -1,0 +1,5 @@
+test:
+  # Mongoid 2
+  host: localhost
+  database: mongo_followable_test
+  logger: false
