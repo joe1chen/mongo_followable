@@ -21,4 +21,10 @@ class Follow
   scope :by_followee_model, lambda { |model| where(:followable_id => model.id).by_followee_type(model.class.name) }
   scope :by_follower_type, lambda { |type| where(:following_type => type.safe_capitalize) }
   scope :by_follower_model, lambda { |model| where(:following_id => model.id).by_follower_type(model.class.name) }
+
+  if Mongo::Followable.mongoid2?
+    index([[ :following_id, Mongo::ASCENDING ],[ :followable_id, Mongo::ASCENDING ],[ :following_type, Mongo::ASCENDING ],[ :followable_type, Mongo::ASCENDING ]], unique: true)
+  elsif Mongo::Followable.mongoid3?
+    index({ following_id: 1, followable_id: 1, following_type: 1, followable_type: 1 }, { unique: true })
+  end
 end
