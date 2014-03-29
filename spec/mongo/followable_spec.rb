@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Mongo::Followable do
+describe MongoFollowable do
   describe User do
     let!(:u) { User.create! }
 
@@ -135,8 +135,8 @@ describe Mongo::Followable do
 
       it "following a user" do
         u.follow(v, g)
-        Follow.count.should > 0
-        Follow.all.each do |f|
+        MongoFollowable::Follow.count.should > 0
+        MongoFollowable::Follow.all.each do |f|
           f.updated_at.should_not == nil
           f.created_at.should_not == nil
         end
@@ -173,16 +173,16 @@ describe Mongo::Followable do
     context "indexes" do
       context "when indexes are created" do
         before do
-          if Mongo::Followable.mongoid2? || Mongo::Followable.mongoid3?
-            Follow.create_indexes
+          if MongoFollowable.mongoid2? || MongoFollowable.mongoid3?
+            MongoFollowable::Follow.create_indexes
           end
         end
 
         after do
-          if Mongo::Followable.mongoid2?
-            Follow.collection.drop_indexes
-          elsif Mongo::Followable.mongoid3?
-            Follow.remove_indexes
+          if MongoFollowable.mongoid2?
+            MongoFollowable::Follow.collection.drop_indexes
+          elsif MongoFollowable.mongoid3?
+            MongoFollowable::Follow.remove_indexes
           end
         end
 

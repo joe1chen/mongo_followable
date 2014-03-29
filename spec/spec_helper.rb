@@ -15,7 +15,7 @@ if rand > 0.5
   require File.expand_path("../mongoid/user", __FILE__)
   require File.expand_path("../mongoid/group", __FILE__)
   require File.expand_path("../mongoid/childuser", __FILE__)
-  if Mongo::Followable.mongoid2?
+  if MongoFollowable.mongoid2?
     Mongoid.load!(File.expand_path("../mongoid2.yml", __FILE__))
   else
     Mongoid.load!(File.expand_path("../mongoid.yml", __FILE__))

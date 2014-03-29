@@ -1,5 +1,5 @@
 class Group
   include Mongoid::Document
-  include Mongo::Followable::Followed
-  include Mongo::Followable::History
+  include MongoFollowable::Followed
+  include MongoFollowable::Features::History
 end

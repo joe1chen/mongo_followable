@@ -1,6 +1,6 @@
 class User
   include MongoMapper::Document
-  include Mongo::Followable::Followed
-  include Mongo::Followable::Follower
-  include Mongo::Followable::History
+  include MongoFollowable::Followed
+  include MongoFollowable::Follower
+  include MongoFollowable::Features::History
 end

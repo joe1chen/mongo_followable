@@ -1,10 +1,10 @@
-module Mongo
-  module Followable
+module MongoFollowable
+  module Features
     module History
       extend ActiveSupport::Concern
 
       included do |base|
-        if base.include?(Mongo::Followable::Follower)
+        if base.include?(MongoFollowable::Follower)
           if defined?(Mongoid)
             base.field :follow_history, :type => Array, :default => []
           elsif defined?(MongoMapper)
@@ -12,7 +12,7 @@ module Mongo
           end
         end
 
-        if base.include?(Mongo::Followable::Followed)
+        if base.include?(MongoFollowable::Followed)
           if defined?(Mongoid)
             base.field :followed_history, :type => Array, :default => []
           elsif defined?(MongoMapper)
@@ -22,10 +22,10 @@ module Mongo
       end
 
       module ClassMethods
- #       def clear_history!
- #         self.all.each { |m| m.unset(:follow_history) }
- #         self.all.each { |m| m.unset(:followed_history) }
- #       end
+  #       def clear_history!
+  #         self.all.each { |m| m.unset(:follow_history) }
+  #         self.all.each { |m| m.unset(:followed_history) }
+  #       end
       end
 
       def clear_history!

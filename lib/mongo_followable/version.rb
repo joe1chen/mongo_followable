@@ -1,5 +1,3 @@
-module Mongo
-  module Followable
-    VERSION = "0.4.1"
-  end
+module MongoFollowable
+  VERSION = "0.4.1"
 end
