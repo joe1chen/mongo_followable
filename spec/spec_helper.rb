@@ -8,7 +8,15 @@ require "rspec"
 
 CONFIG = { :authorization => true, :history => true }
 
-if rand > 0.5
+if ENV['MONGOID_VERSION'] && !ENV['MONGO_MAPPER_VERSION']
+  rand_val = 1
+elsif ENV['MONGO_MAPPER_VERSION'] && !ENV['MONGOID_VERSION']
+  rand_val = 0
+else
+  rand_val = rand
+end
+
+if rand_val > 0.5
   puts 'Mongoid'
   require 'mongoid'
   require File.expand_path("../../lib/mongo_followable", __FILE__)
