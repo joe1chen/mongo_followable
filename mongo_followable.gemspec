@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = "mongo_followable"
 
   s.add_development_dependency('rspec', '> 2.7.0')
+  s.add_development_dependency('rake')
   s.add_development_dependency('mongoid')
   s.add_development_dependency('mongo_mapper')
   s.add_development_dependency('bson_ext', '> 1.5.0')
