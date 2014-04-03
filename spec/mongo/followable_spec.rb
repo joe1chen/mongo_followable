@@ -173,16 +173,18 @@ describe Mongo::Followable do
     context "indexes" do
       context "when indexes are created" do
         before do
-          if Mongo::Followable.mongoid2? || Mongo::Followable.mongoid3?
+          if defined?(Mongoid)
             Follow.create_indexes
           end
         end
 
         after do
-          if Mongo::Followable.mongoid2?
-            Follow.collection.drop_indexes
-          elsif Mongo::Followable.mongoid3?
-            Follow.remove_indexes
+          if defined?(Mongoid)
+            if Mongo::Followable.mongoid2?
+              Follow.collection.drop_indexes
+            else
+              Follow.remove_indexes
+            end
           end
         end
 
