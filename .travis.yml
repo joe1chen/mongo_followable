@@ -20,6 +20,7 @@ matrix:
   allow_failures:
     - rvm: rbx-2
       env: MONGOID_VERSION=4
+    - rvm: jruby-head
 
 services:
   - mongodb
