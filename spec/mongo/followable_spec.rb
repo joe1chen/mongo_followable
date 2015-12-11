@@ -12,12 +12,12 @@ describe Mongo::Followable do
       it "following a user" do
         u.follow(v, g)
 
-        u.following?.should be_true
-        v.followed?.should be_true
-        g.followed?.should be_true
+        u.following?.should == true
+        v.followed?.should == true
+        g.followed?.should == true
 
-        u.follower_of?(v).should be_true
-        v.followee_of?(u).should be_true
+        u.follower_of?(v).should == true
+        v.followee_of?(u).should == true
 
         u.all_followees.should == [v, g]
         v.all_followers.should == [u]
@@ -34,12 +34,12 @@ describe Mongo::Followable do
         u.ever_follow.should =~ [v, g]
         v.ever_followed.should == [u]
 
-        u.ever_follow?(v).should be_true
-        u.ever_follow?(g).should be_true
-        v.ever_followed?(u).should be_true
+        u.ever_follow?(v).should == true
+        u.ever_follow?(g).should == true
+        v.ever_followed?(u).should == true
 
-        u.common_followees?(v).should be_false
-        v.common_followers?(u).should be_false
+        u.common_followees?(v).should == false
+        v.common_followers?(u).should == false
         u.common_followees_with(v).should == []
         v.common_followers_with(u).should == []
 
@@ -52,8 +52,8 @@ describe Mongo::Followable do
       it "unfollowing" do
         u.unfollow_all
 
-        u.follower_of?(v).should be_false
-        v.followee_of?(u).should be_false
+        u.follower_of?(v).should == false
+        v.followee_of?(u).should == false
 
         u.all_followees.should == []
         v.all_followers.should == []
@@ -71,8 +71,8 @@ describe Mongo::Followable do
       it "following a group" do
         u.follow(g)
 
-        u.follower_of?(g).should be_true
-        g.followee_of?(u).should be_true
+        u.follower_of?(g).should == true
+        g.followee_of?(u).should == true
 
         u.all_followees.should == [g]
         g.all_followers.should == [u]
@@ -97,8 +97,8 @@ describe Mongo::Followable do
         g.clear_history!
         g.ever_followed.should == []
 
-        u.common_followees?(v).should be_false
-        v.common_followers?(g).should be_true
+        u.common_followees?(v).should == false
+        v.common_followers?(g).should == true
         u.common_followees_with(v).should == []
         v.common_followers_with(g).should == [u]
 
@@ -111,8 +111,8 @@ describe Mongo::Followable do
       it "unfollowing a group" do
         u.unfollow(g)
 
-        u.follower_of?(g).should be_false
-        g.followee_of?(u).should be_false
+        u.follower_of?(g).should == false
+        g.followee_of?(u).should == false
 
         u.all_followees.should == []
         g.all_followers.should == []
@@ -215,16 +215,16 @@ describe Mongo::Followable do
 
         g.all_followers.should =~ [v,u,w]
 
-        w.follower_of?(g).should be_true
-        g.followee_of?(w).should be_true
+        w.follower_of?(g).should == true
+        g.followee_of?(w).should == true
 
         #g.unfollowed(w)
 
-        u.follower_of?(g).should be_true
-        g.followee_of?(u).should be_true
+        u.follower_of?(g).should == true
+        g.followee_of?(u).should == true
 
-        v.follower_of?(g).should be_true
-        g.followee_of?(v).should be_true
+        v.follower_of?(g).should == true
+        g.followee_of?(v).should == true
 
         #g.all_followers.should =~ [v,u]
 
