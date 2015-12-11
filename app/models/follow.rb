@@ -22,11 +22,16 @@ class Follow
   scope :by_follower_type, lambda { |type| where(:following_type => type.safe_capitalize) }
   scope :by_follower_model, lambda { |model| where(:following_id => model.id).by_follower_type(model.class.name) }
 
-  if defined?(Mongoid)
-    if Mongo::Followable.mongoid2?
-      index([[ :following_id, Mongo::ASCENDING ],[ :followable_id, Mongo::ASCENDING ],[ :following_type, Mongo::ASCENDING ],[ :followable_type, Mongo::ASCENDING ]], unique: true)
-    else
-      index({ following_id: 1, followable_id: 1, following_type: 1, followable_type: 1 }, { unique: true })
-    end
+  validates_presence_of :followable
+  validates_presence_of :following
+
+  field :fixed_ts
+
+  if Mongo::Followable.mongoid2?
+    index([[ :following_id, Mongo::ASCENDING ],[ :followable_id, Mongo::ASCENDING ],[ :following_type, Mongo::ASCENDING ],[ :followable_type, Mongo::ASCENDING ]], unique: true)
+    index([[ :followable_id, Mongo::ASCENDING ],[ :following_type, Mongo::ASCENDING ],[ :created_at, Mongo::ASCENDING ]])
+  else
+    index({ following_id: 1, followable_id: 1, following_type: 1, followable_type: 1 }, { unique: true })
+    index({ followable_id: 1, following_type: 1, created_at: 1 })
   end
 end
