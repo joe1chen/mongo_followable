@@ -13,6 +13,8 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "mongo_followable"
 
+  s.add_dependency('mongoid_magic_counter_cache', '>= 1.1.1')
+
   s.add_development_dependency('rspec', '> 2.7.0')
   s.add_development_dependency('rake')
   s.add_development_dependency('mongoid')

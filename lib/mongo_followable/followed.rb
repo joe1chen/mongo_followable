@@ -6,6 +6,7 @@ module Mongo
       included do |base|
         if defined?(Mongoid)
           base.has_many :followers, :class_name => "Follow", :as => :followable, :dependent => :destroy
+          base.field :followers_cached_count, type: Integer, default: 0
         elsif defined?(MongoMapper)
           base.many :followers, :class_name => "Follow", :as => :followable, :dependent => :destroy
         end

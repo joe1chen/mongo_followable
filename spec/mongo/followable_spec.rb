@@ -28,6 +28,11 @@ describe Mongo::Followable do
         u.followees_count.should == 2
         v.followers_count.should == 1
 
+        if defined?(Mongoid)
+          u.followees_cached_count.should == u.followees_count
+          v.followers_cached_count.should == v.followers_count
+        end
+
         u.followees_count_by_type("user").should == 1
         v.followers_count_by_type("user").should == 1
 
@@ -64,6 +69,11 @@ describe Mongo::Followable do
         u.followees_count.should == 0
         v.followers_count.should == 0
 
+        if defined?(Mongoid)
+          u.followees_cached_count.should == u.followees_count
+          v.followers_cached_count.should == v.followers_count
+        end
+
         u.followees_count_by_type("user").should == 0
         v.followers_count_by_type("user").should == 0
       end
@@ -82,6 +92,11 @@ describe Mongo::Followable do
 
         u.followees_count.should == 1
         g.followers_count.should == 1
+
+        if defined?(Mongoid)
+          u.followees_cached_count.should == u.followees_count
+          g.followers_cached_count.should == g.followers_count
+        end
 
         u.followees_count_by_type("group").should == 1
         g.followers_count_by_type("user").should == 1
@@ -122,6 +137,11 @@ describe Mongo::Followable do
 
         u.followees_count.should == 0
         g.followers_count.should == 0
+
+        if defined?(Mongoid)
+          u.followees_cached_count.should == u.followees_count
+          g.followers_cached_count.should == g.followers_count
+        end
 
         u.followees_count_by_type("group").should == 0
         g.followers_count_by_type("group").should == 0

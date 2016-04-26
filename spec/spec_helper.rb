@@ -16,7 +16,7 @@ else
   rand_val = rand
 end
 
-if rand_val > 0.5
+if rand_val > 0
   puts 'Mongoid'
   require 'mongoid'
   require File.expand_path("../../lib/mongo_followable", __FILE__)

@@ -1,9 +1,11 @@
 require 'mongo_followable/core_ext/util'
+require 'mongoid_magic_counter_cache'
 
 class Follow
   if defined?(Mongoid)
     include Mongoid::Document
     include Mongoid::Timestamps
+    include Mongoid::MagicCounterCache
   elsif defined?(MongoMapper)
     include MongoMapper::Document
     timestamps!
@@ -11,7 +13,10 @@ class Follow
 
   if defined?(Mongoid)
     belongs_to :followable, :polymorphic => true, index: true
+    counter_cache :followable, field: 'followers_cached_count'
+
     belongs_to :following, :polymorphic => true, index: true
+    counter_cache :following, field: 'followees_cached_count'
   else
     belongs_to :followable, :polymorphic => true
     belongs_to :following, :polymorphic => true

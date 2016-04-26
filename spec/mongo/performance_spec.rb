@@ -2,7 +2,7 @@ require "spec_helper"
 require "benchmark"
 
 users = []
-1000.times { users << User.create! }
+50.times { users << User.create! }
 group = Group.create!
 
 users.each { |u| u.follow(group) }
