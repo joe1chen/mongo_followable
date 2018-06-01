@@ -18,7 +18,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency('rspec')
   s.add_development_dependency('rake')
   s.add_development_dependency('mongoid')
-  s.add_development_dependency('mongo_mapper')
+  if ENV['MONGO_MAPPER_VERSION']
+    s.add_development_dependency('mongo_mapper')
+  end
   s.add_development_dependency('database_cleaner')
 
   s.files         = `git ls-files`.split("\n")
