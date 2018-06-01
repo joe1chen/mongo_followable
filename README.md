@@ -1,43 +1,49 @@
-= mongo_followable
+# mongo_followable
 
 Now works for both Mongoid and Mongo_Mapper!
 
-{rdoc-image:https://secure.travis-ci.org/joe1chen/mongo_followable.png?branch=integration}[http://travis-ci.org/joe1chen/mongo_followable]
+[![Build Status](https://secure.travis-ci.org/joe1chen/mongo_followable.png?branch=integration)](http://travis-ci.org/joe1chen/mongo_followable)
 
-== Installation
+## Installation
 
 In console:
-  gem install mongo_followable
+    gem install mongo_followable
+
 or in Gemfile:
-  gem 'mongo_followable'
+    gem 'mongo_followable'
 
-== Notice
+## Notice
 
-Please read following documentation first. Since 0.3.2, some apis have been changed. Sorry for the inconvenience.
+Please read following documentation first. Since 0.3.2, some apis have been
+changed. Sorry for the inconvenience.
 
-If you want to remove `follow_history` and `followed_history` fields totally from your database after you decide not to use follow/followed history feature, do this:
+If you want to remove `follow_history` and `followed_history` fields totally
+from your database after you decide not to use follow/followed history
+feature, do this:
 
     # in the rails console, taking user as an example:
     User.all.each { |u| u.unset(:follow_history) } # this will remove the follow_history field
 
-== Usage
+## Usage
 
-To make model followable you need to include Mongo::Followable into your model; You also need to include Mongo::Follower in your follower model:
-  class User
-    include Mongoid::Document  #for Mongo_Mapper users, this line of code should be include MongoMapper::Document
-    include Mongo::Followable::Followed
-    include Mongo::Followable::Follower
-    include Mongo::Followable::History # you have to add this line to enable follow/followed history
-  end
+To make model followable you need to include Mongo::Followable into your
+model; You also need to include Mongo::Follower in your follower model:
+    class User
+      include Mongoid::Document  #for Mongo_Mapper users, this line of code should be include MongoMapper::Document
+      include Mongo::Followable::Followed
+      include Mongo::Followable::Follower
+      include Mongo::Followable::History # you have to add this line to enable follow/followed history
+    end
 
-  class Group
-    include Mongoid::Document  #for Mongo_Mapper users, this line of code should be include MongoMapper::Document
-    include Mongo::Followable::Followed
-    include Mongo::Followable::History # you have to add this line to enable follow/followed history
-  end
+    class Group
+      include Mongoid::Document  #for Mongo_Mapper users, this line of code should be include MongoMapper::Document
+      include Mongo::Followable::Followed
+      include Mongo::Followable::History # you have to add this line to enable follow/followed history
+    end
 
-I've decided to remove authorization because it is quite inefficient to keep this field for every record in the database.
-However, it's possible that I'll add it back as a plugin in the future.
+I've decided to remove authorization because it is quite inefficient to keep
+this field for every record in the database. However, it's possible that I'll
+add it back as a plugin in the future.
 
 And then you can follow and unfollow:
 
@@ -63,7 +69,8 @@ It's also possible to pass a block:
 
     @group.unfollowed(u1, u2, u3...) { |user| user.ever_follow.include? @some_user }
 
-You can also judge whether a model is a follower of another model or a model is a followee of another model:
+You can also judge whether a model is a follower of another model or a model
+is a followee of another model:
 
     current_user.follower_of?(@group)
     current_user.followee_of?(@group)
@@ -124,7 +131,8 @@ Sure you can clear the histories:
     @user.clear_follow_history!
     @group.clear_followed_history!
 
-Another feature is to get a list of models which has the most followers/followees:
+Another feature is to get a list of models which has the most
+followers/followees:
 
     User.with_max_followees
     User.with_min_followees
@@ -135,7 +143,8 @@ Another feature is to get a list of models which has the most followers/followee
     Group.with_max_followers_by_type('user')
     Group.with_min_followers_by_type('user')
 
-Now you can tell if two models have some common followers/followees by following methods:
+Now you can tell if two models have some common followers/followees by
+following methods:
 
     @user.common_followees?(@another_user)
     @user.common_followers?(@group)
@@ -144,28 +153,35 @@ And see what the common followers/followees are:
 
     @user.common_followees_with(@another_user)
     @user.common_followers_with(@group)
-    
-* Any bug or issue, please send me an email: ustc.flyingfox@gmail.com
-                                                  include Mongo::Followable::History # you have to add this line to enable follow/followed history
-== TODO
 
-* inter-models followable #FINISHED#
-* divide into two parts: followable(being followed) and follower(following others) #FINISHED#
-* following history/followed history #FINISHED#
-* most/least followed/following #FINISHED
-* add authorization to followable models #FINISHED#
-* common followers/followees #FINISHED#
-* add support for mongo_mapper in next version #FINISHED#
-* implement plugins: confirmation, authorization etc.
+*   Any bug or issue, please send me an email: ustc.flyingfox@gmail.com
+        include Mongo::Followable::History # you have to add this line to enable follow/followed history
+
+
+## TODO
+
+*   inter-models followable #FINISHED#
+*   divide into two parts: followable(being followed) and follower(following
+    others) #FINISHED#
+*   following history/followed history #FINISHED#
+*   most/least followed/following #FINISHED
+*   add authorization to followable models #FINISHED#
+*   common followers/followees #FINISHED#
+*   add support for mongo_mapper in next version #FINISHED#
+*   implement plugins: confirmation, authorization etc.
+
 
 !!If you have any advice, plese do not hesitate to tell me!!
 
-== Thanks
+## Thanks
 
-Thanks the author(s) of acts_as_followable, you can find this gem here[https://github.com/xpepermint/acts_as_followable]
+Thanks the author(s) of acts_as_followable, you can find this gem
+[here](https://github.com/xpepermint/acts_as_followable)
 
-Thanks the author(s) of voteable_mongo, you can find this gem here[https://github.com/vinova/voteable_mongo]
+Thanks the author(s) of voteable_mongo, you can find this gem
+[here](https://github.com/vinova/voteable_mongo)
 
-== Copyright
+## Copyright
 
-Copyright (c) Jie Fan. See LICENSE.txt for further details.    
+Copyright (c) Jie Fan. See LICENSE.txt for further details. 
+
