@@ -13,13 +13,13 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "mongo_followable"
 
-  s.add_dependency('mongoid_magic_counter_cache', '>= 1.1.1')
+  s.add_dependency('mongoid_magic_counter_cache')
 
-  s.add_development_dependency('rspec', '> 2.7.0')
+  s.add_development_dependency('rspec')
   s.add_development_dependency('rake')
   s.add_development_dependency('mongoid')
   s.add_development_dependency('mongo_mapper')
-  s.add_development_dependency('database_cleaner', '>0.7.0')
+  s.add_development_dependency('database_cleaner')
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

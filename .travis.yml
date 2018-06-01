@@ -1,28 +1,16 @@
 rvm:
-  - 1.9.2
-  - 1.9.3
-  - 2.0.0
-  - jruby-head
-  - rbx-2
+  - 2.3.3
 
 env:
   - MONGOID_VERSION=2
   - MONGOID_VERSION=3
   - MONGOID_VERSION=4
-  - MONGO_MAPPER_VERSION=0.12
-
-matrix:
-  exclude:
-    - rvm: 1.9.2
-      env: MONGOID_VERSION=3
-    - rvm: 1.9.2
-      env: MONGOID_VERSION=4
-  allow_failures:
-    - rvm: rbx-2
-      env: MONGOID_VERSION=4
-    - rvm: jruby-head
 
 services:
   - mongodb
 
+matrix:
+  allow_failures:
+    - env: MONGOID_VERSION=2
+    
 cache: bundler

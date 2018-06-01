@@ -3,9 +3,9 @@ source "http://rubygems.org"
 # Specify your gem's dependencies in mongo_followable.gemspec
 gemspec
 
-case ENV['MONGOID_VERSION']
+case ENV['MONGOID_VERSION'] || "~> 4.0"
   when /4/
-    gem "mongoid", :github => 'mongoid/mongoid'
+    gem "mongoid", "~> 4.0"
   when /3/
     gem "mongoid", "~> 3.1"
   when /2/
