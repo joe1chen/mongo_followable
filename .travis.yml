@@ -11,8 +11,4 @@ env:
 services:
   - mongodb
 
-matrix:
-  allow_failures:
-    - env: MONGOID_VERSION=2
-    
 cache: bundler
