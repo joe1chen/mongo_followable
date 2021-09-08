@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   if ENV['MONGO_MAPPER_VERSION']
     s.add_development_dependency('mongo_mapper')
   end
-  s.add_development_dependency('database_cleaner')
+  s.add_development_dependency('database_cleaner-mongoid')
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

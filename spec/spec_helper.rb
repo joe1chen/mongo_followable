@@ -1,7 +1,7 @@
 require "rubygems"
 require "bundler/setup"
 
-require "database_cleaner"
+require "database_cleaner/mongoid"
 require "rspec"
 
 CONFIG = { :authorization => true, :history => true }
@@ -29,6 +29,6 @@ else
 end
 
 RSpec.configure do |c|
-  c.before(:all)  { DatabaseCleaner.strategy = :truncation }
+  c.before(:all)  { DatabaseCleaner[:mongoid].strategy = [:deletion] }
   c.before(:each) { DatabaseCleaner.clean }
 end

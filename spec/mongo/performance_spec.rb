@@ -12,6 +12,6 @@ Benchmark.bmbm do |x|
 end
 
 RSpec.configure do |c|
-  c.before(:all)  { DatabaseCleaner.strategy = :truncation }
+  c.before(:all)  { DatabaseCleaner[:mongoid].strategy = [:deletion] }
   c.before(:each) { DatabaseCleaner.clean }
 end
