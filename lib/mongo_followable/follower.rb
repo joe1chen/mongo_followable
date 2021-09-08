@@ -6,6 +6,7 @@ module Mongo
      included do |base|
        if defined?(Mongoid)
          base.has_many :followees, :class_name => "Follow", :as => :following, :dependent => :destroy
+         base.field :followees_cached_count, type: Integer, default: 0
        elsif defined?(MongoMapper)
          base.many :followees, :class_name => "Follow", :as => :following, :dependent => :destroy
        end
@@ -87,7 +88,7 @@ module Mongo
      #   => true
 
      def follower_of?(model)
-       0 < self.followees.by_model(model).limit(1).count * model.followers.by_model(self).limit(1).count
+       0 < model.followers.by_follower_model(self).count
      end
 
      # return true if self is following some models
@@ -107,7 +108,7 @@ module Mongo
      #   => [@ruby]
 
      def all_followees
-       rebuild_instances(self.followees)
+       rebuild_instances_followees(self.followees)
      end
 
      # get all the followees of this model in certain type
@@ -117,7 +118,7 @@ module Mongo
      #   => [@ruby]
 
      def followees_by_type(type)
-       rebuild_instances(self.followees.by_type(type))
+       rebuild_instances_followees(self.followees.by_followee_type(type))
      end
 
      # follow some model
@@ -129,8 +130,7 @@ module Mongo
 
        models.each do |model|
          unless model == self or self.follower_of?(model) or model.followee_of?(self)
-           model.followers.create!(:f_type => self.class.name, :f_id => self.id.to_s)
-           self.followees.create!(:f_type => model.class.name, :f_id => model.id.to_s)
+           self.followees.create!(followable: model)
 
            model.followed_history << self.class.name + '_' + self.id.to_s if model.respond_to? :followed_history
            self.follow_history << model.class.name + '_' + model.id.to_s if self.respond_to? :follow_history
@@ -150,8 +150,8 @@ module Mongo
 
        models.each do |model|
          unless model == self or !self.follower_of?(model) or !model.followee_of?(self)
-           model.followers.by_model(self).first.destroy
-           self.followees.by_model(model).first.destroy
+           f = model.followers.by_follower_model(self).first
+           f.destroy if f
          end
        end
      end
@@ -179,7 +179,7 @@ module Mongo
      #   => 1
 
      def followees_count_by_type(type)
-       self.followees.by_type(type).count
+       self.followees.by_followee_type(type).count
      end
 
      # return if there is any common followees
@@ -189,7 +189,7 @@ module Mongo
      #   => true
 
      def common_followees?(model)
-       0 < (rebuild_instances(self.followees) & rebuild_instances(model.followees)).length
+       0 < (rebuild_instances_followees(self.followees) & rebuild_instances_followees(model.followees)).length
      end
 
      # get common followees with some model
@@ -199,17 +199,12 @@ module Mongo
      #   => [@ruby]
 
      def common_followees_with(model)
-       rebuild_instances(self.followees) & rebuild_instances(model.followees)
+       rebuild_instances_followees(self.followees) & rebuild_instances_followees(model.followees)
      end
 
      private
-       def rebuild_instances(follows) #:nodoc:
-         follows.group_by(&:f_type).inject([]) { |r, (k, v)| r += k.constantize.find(v.map(&:f_id)).to_a }
-         #follow_list = []
-         #follows.each do |follow|
-         #  follow_list << follow.f_type.constantize.find(follow.f_id)
-         #end
-         #follow_list
+       def rebuild_instances_followees(follows) #:nodoc:
+         follows.to_a.collect{|x| x.followable}
        end
     end
   end
