@@ -1,8 +1,8 @@
 script: "bundle exec rspec spec"
 
 rvm:
-  - 2.3.7
-  - 2.5.1
+  - 2.5.7
+  - 2.6.6
 
 env:
   - RAILS_VERSION=3.2.22.5 MONGOID_VERSION=3.1.7
@@ -11,6 +11,8 @@ env:
   - RAILS_VERSION=5.0.7 MONGOID_VERSION=6.1.1
   - RAILS_VERSION=5.1.6 MONGOID_VERSION=6.2.1
   - RAILS_VERSION=5.2.0 MONGOID_VERSION=6.4.1
+  - RAILS_VERSION=6.0.3 MONGOID_VERSION=7.0.8
+  - RAILS_VERSION=6.0.3 MONGOID_VERSION=7.1.2
 
 services:
   - mongodb
