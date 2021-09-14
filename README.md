@@ -2,7 +2,7 @@
 
 Now works for both Mongoid and Mongo_Mapper!
 
-[![Build Status](https://secure.travis-ci.org/joe1chen/mongo_followable.png?branch=integration)](http://travis-ci.org/joe1chen/mongo_followable)
+[![Build Status](https://app.travis-ci.com/joe1chen/mongo_followable.svg)](https://app.travis-ci.com/github/joe1chen/mongo_followable)
 
 ## Installation
 
