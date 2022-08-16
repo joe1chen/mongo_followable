@@ -2,7 +2,7 @@
 
 Now works for both Mongoid and Mongo_Mapper!
 
-[![Build Status](https://app.travis-ci.com/joe1chen/mongo_followable.svg)](https://app.travis-ci.com/github/joe1chen/mongo_followable)
+![Build Status](https://github.com/joe1chen/mongo_followable/actions/workflows/test.yml/badge.svg)
 
 ## Installation
 
