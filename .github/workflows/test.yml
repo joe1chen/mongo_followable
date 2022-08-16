@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   build:
     name: >-
-      ${{ matrix.ruby }}
+      Mongoid ${{ matrix.mongoid }} - Ruby ${{ matrix.ruby }} - Rails ${{ matrix.rails }}
     env:
       CI: true
       TESTOPTS: -v
