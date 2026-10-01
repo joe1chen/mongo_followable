@@ -15,12 +15,9 @@ Gem::Specification.new do |s|
 
   s.add_dependency('mongoid_magic_counter_cache')
 
-  s.add_development_dependency('rspec')
+  s.add_development_dependency('rspec', '~> 3.13')
   s.add_development_dependency('rake')
-  s.add_development_dependency('mongoid')
-  if ENV['MONGO_MAPPER_VERSION']
-    s.add_development_dependency('mongo_mapper')
-  end
+  s.add_development_dependency('mongoid', '>= 7.0', '< 10')
   s.add_development_dependency('database_cleaner-mongoid')
 
   s.files         = `git ls-files`.split("\n")
