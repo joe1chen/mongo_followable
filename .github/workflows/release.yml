@@ -1,0 +1,71 @@
+# Creates a GitHub Release for every pushed version tag (vX.Y.Z), using the matching
+# "## [X.Y.Z]" section of CHANGELOG.md as the release notes. Repo- and gem-agnostic:
+# expects exactly one *.gemspec and CHANGELOG.md at the repository root.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: GitHub Release for ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: repo checkout
+        uses: actions/checkout@v5
+
+      - name: load ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: verify tag matches gem version
+        id: version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          GEM_VERSION=$(ruby -e '
+            g = Dir["*.gemspec"]
+            abort "expected exactly one *.gemspec at the repo root, found #{g.size}" unless g.size == 1
+            s = Gem::Specification.load(g.first) or abort "could not load #{g.first}"
+            puts s.version.to_s')
+          echo "tag: $TAG, gem version: $GEM_VERSION"
+          if [ "$TAG" != "v$GEM_VERSION" ]; then
+            echo "::error::tag $TAG does not match the gem version $GEM_VERSION (expected v$GEM_VERSION)"
+            exit 1
+          fi
+          echo "version=$GEM_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: extract release notes from CHANGELOG.md
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [ ! -f CHANGELOG.md ]; then
+            echo "::error::CHANGELOG.md not found"
+            exit 1
+          fi
+          # Lines after "## [X.Y.Z]" up to the next "## [" heading or the link reference definitions,
+          # with leading and trailing blank lines removed.
+          awk -v heading="## [$VERSION]" '
+            index($0, heading) == 1 { found = 1; next }
+            found && (/^## \[/ || /^\[.+\]: /) { exit }
+            found { line[++n] = $0; if ($0 ~ /[^ \t\r]/) { if (!first) first = n; last = n } }
+            END { for (i = first; first && i <= last; i++) print line[i] }
+          ' CHANGELOG.md > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "::error::no \"## [$VERSION]\" section (or an empty one) in CHANGELOG.md"
+            exit 1
+          fi
+          cat notes.md
+
+      - name: create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: gh release create "$TAG" --title "$TAG" --notes-file notes.md --verify-tag --latest
