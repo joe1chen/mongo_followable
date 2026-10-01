@@ -13,10 +13,10 @@ This is the [DOGOnews](https://www.dogonews.com)-maintained fork of
 
 ## Branches: `master` and `integration`
 
-Use **`master`**. The fork's optimized follow schema was developed on the `integration` branch (2014) and merged
-into `master` in 2021; since then `master` has only gained CI/test changes. `integration` is kept as a
-compatibility alias that is fast-forwarded to `master`, so apps that still pin `branch: 'integration'` get exactly
-the same code.
+Pin a **release tag** (see Installation); releases are cut from `master`. The fork's optimized follow schema was
+developed on the `integration` branch (2014) and merged into `master` in 2021; since then `master` has only gained
+CI/test changes. `integration` is a legacy alias that is fast-forwarded to `master`, so apps that still pin
+`branch: 'integration'` get exactly the same code; it will be retired once the apps pin a tag.
 
 ### The optimized schema (vs upstream)
 
@@ -57,15 +57,15 @@ unsupported.
 
 ## Installation
 
-This fork is not published to RubyGems; install it from GitHub:
+This fork is not published to RubyGems; install it from GitHub, pinned to a release tag
+([releases](https://github.com/joe1chen/mongo_followable/releases)):
 
 ```ruby
 # Gemfile
-gem 'mongo_followable', github: 'joe1chen/mongo_followable'
-
-# existing apps pinned to the old branch name get the same code:
-gem 'mongo_followable', github: 'joe1chen/mongo_followable', branch: 'integration'
+gem 'mongo_followable', github: 'joe1chen/mongo_followable', tag: 'v0.5.0'
 ```
+
+`branch: 'integration'` is a legacy alias that tracks `master`; it will be retired once the apps pin a tag.
 
 Then `bundle install`. Create the `Follow` indexes once (e.g. `rake db:mongoid:create_indexes` in Rails, or
 `Follow.create_indexes`).
@@ -186,13 +186,11 @@ To add a combination to CI, add a row to `matrix.include` in `.github/workflows/
 
 ## History
 
-- **0.4.2+ (DOGOnews fork, 2026)** — GitHub Actions matrix up to Ruby 3.4 / Rails 8.0 / Mongoid 9.0 / MongoDB
-  8.0 (Travis CI removed); specs on RSpec 3; MongoMapper test harness dropped. No changes to `lib/` or the stored
-  schema were needed.
-- **2021** — `integration` (optimized schema) merged into `master`; GitHub Actions replaced Travis.
-- **2014–2018 (`integration`)** — one `Follow` document per relationship, timestamps, cached counters, indexes,
-  Mongoid 2–6 support.
-- **Original** — mongo_followable by Jie Fan, Mongoid and MongoMapper.
+Jie Fan's original (2011, Mongoid and MongoMapper) reached 0.3.2 on RubyGems (2012) and was continued by
+DOGOnews in this fork: 0.4.0–0.4.2 (2014–2016, on the `integration` branch: one `Follow` document per
+relationship, timestamps, cached counters, indexes; merged into `master` in 2021), then 0.5.0 (2026: tested on
+Mongoid 7.5–9.x with current Ruby/Rails/MongoDB, no changes to `lib/` or the stored schema).
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## Thanks
 
