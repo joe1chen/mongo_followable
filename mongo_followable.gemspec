@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version     = Mongo::Followable::VERSION
   s.authors     = ["Jie Fan"]
   s.email       = ["ustc.flyingfox@gmail.com"]
-  s.homepage    = "https://github.com/lastomato/mongo_followable"
+  s.homepage    = "https://github.com/joe1chen/mongo_followable"
   s.summary     = %q{ adds following feature to mongoid/mongo_mapper }
   s.description = %q{ Mongo Followable adds following feature to mongoid/mongo_mapper }
 

@@ -1,187 +1,207 @@
 # mongo_followable
 
-Now works for both Mongoid and Mongo_Mapper!
+[![CI RSpec Test](https://github.com/joe1chen/mongo_followable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/joe1chen/mongo_followable/actions/workflows/test.yml)
 
-[![Build Status](https://github.com/joe1chen/mongo_followable/actions/workflows/test.yml/badge.svg)](https://github.com/joe1chen/mongo_followable/actions)
+Follow / unfollow between **Mongoid** documents (users following users, users following groups, ...). Each
+follow relationship is a single `Follow` document with polymorphic references to both sides; follower and
+followee counts are also cached on the documents themselves.
+
+This is the [DOGOnews](https://www.dogonews.com)-maintained fork of
+[lastomato/mongo_followable](https://github.com/lastomato/mongo_followable) (upstream has been inactive since
+2012). It is kept working on current Ruby, Rails, Mongoid and MongoDB versions, and it uses a different,
+**incompatible storage schema** from upstream (see below).
+
+## Branches: `master` and `integration`
+
+Use **`master`**. The fork's optimized follow schema was developed on the `integration` branch (2014) and merged
+into `master` in 2021; since then `master` has only gained CI/test changes. `integration` is kept as a
+compatibility alias that is fast-forwarded to `master`, so apps that still pin `branch: 'integration'` get exactly
+the same code.
+
+### The optimized schema (vs upstream)
+
+Upstream stores **two** documents per relationship (one under the followee, one under the follower), each with
+string `f_id` / `f_type` fields, and rebuilds followers with an extra query per type. This fork
+(commits `1475df1`, `ab6f12f`, `ba6af63`, `d8d041b`):
+
+- stores **one** `Follow` document per relationship: `followable_id`/`followable_type` (who is followed) and
+  `following_id`/`following_type` (who follows), as real `BSON::ObjectId`s via polymorphic `belongs_to`; the
+  `f_id`/`f_type` fields are gone;
+- adds `created_at`/`updated_at` (`Mongoid::Timestamps`) to `Follow`;
+- caches counts on the documents: `followers_cached_count` on followed models and `followees_cached_count` on
+  followers (via [mongoid_magic_counter_cache](https://github.com/jah2488/mongoid-magic-counter-cache));
+- declares indexes: unique `{following_id, followable_id, following_type, followable_type}`,
+  `{followable_id, following_type, created_at}`, plus the polymorphic reference indexes;
+- loads followers/followees through the `following`/`followable` relations, and cleans up `Follow` documents when
+  either side is destroyed (`dependent: :destroy`).
+
+Data written by upstream mongo_followable cannot be read by this fork without a migration.
+
+## Supported versions
+
+Tested on every push by the [GitHub Actions matrix](https://github.com/joe1chen/mongo_followable/actions/workflows/test.yml)
+([workflow](.github/workflows/test.yml)):
+
+| Ruby | Rails | Mongoid | MongoDB |
+|---|---|---|---|
+| 2.7 | 6.1 | 7.5 | 6.0 |
+| 3.0 | 6.1 | 8.0 | 6.0 |
+| 3.1 | 7.0 | 8.1 | 7.0 |
+| 3.2 | 7.1 | 8.1 | 7.0 |
+| 3.2 | 7.2 | 9.0 | 7.0 |
+| 3.3 | 7.2 | 9.0 | 8.0 |
+| 3.4 | 8.0 | 9.0 | 8.0 |
+
+Only Mongoid is tested. `lib/` still contains MongoMapper code paths from upstream, but they are untested and
+unsupported.
 
 ## Installation
 
-In console:
-    gem install mongo_followable
+This fork is not published to RubyGems; install it from GitHub:
 
-or in Gemfile:
-    gem 'mongo_followable'
+```ruby
+# Gemfile
+gem 'mongo_followable', github: 'joe1chen/mongo_followable'
 
-## Notice
+# existing apps pinned to the old branch name get the same code:
+gem 'mongo_followable', github: 'joe1chen/mongo_followable', branch: 'integration'
+```
 
-Please read following documentation first. Since 0.3.2, some apis have been
-changed. Sorry for the inconvenience.
-
-If you want to remove `follow_history` and `followed_history` fields totally
-from your database after you decide not to use follow/followed history
-feature, do this:
-
-    # in the rails console, taking user as an example:
-    User.all.each { |u| u.unset(:follow_history) } # this will remove the follow_history field
+Then `bundle install`. Create the `Follow` indexes once (e.g. `rake db:mongoid:create_indexes` in Rails, or
+`Follow.create_indexes`).
 
 ## Usage
 
-To make model followable you need to include Mongo::Followable into your
-model; You also need to include Mongo::Follower in your follower model:
-    class User
-      include Mongoid::Document  #for Mongo_Mapper users, this line of code should be include MongoMapper::Document
-      include Mongo::Followable::Followed
-      include Mongo::Followable::Follower
-      include Mongo::Followable::History # you have to add this line to enable follow/followed history
-    end
+### Make models followable / followers
 
-    class Group
-      include Mongoid::Document  #for Mongo_Mapper users, this line of code should be include MongoMapper::Document
-      include Mongo::Followable::Followed
-      include Mongo::Followable::History # you have to add this line to enable follow/followed history
-    end
+```ruby
+class User
+  include Mongoid::Document
+  include Mongo::Followable::Followed   # can be followed
+  include Mongo::Followable::Follower   # can follow
+  include Mongo::Followable::History    # optional: follow_history / followed_history arrays
+end
 
-I've decided to remove authorization because it is quite inefficient to keep
-this field for every record in the database. However, it's possible that I'll
-add it back as a plugin in the future.
+class Group
+  include Mongoid::Document
+  include Mongo::Followable::Followed
+  include Mongo::Followable::History
+end
+```
 
-And then you can follow and unfollow:
+`Followed` adds `has_many :followers` (`Follow` documents) and a `followers_cached_count` field; `Follower` adds
+`has_many :followees` (`Follow` documents) and a `followees_cached_count` field. `History` adds
+`follow_history` / `followed_history` fields to whichever of the two modules is included.
 
-    @group = Group.new
-    @group.save
+### Follow and unfollow
 
-    current_user.follow(@group)
-    current_user.unfollow(@group)
-    current_user.unfollow_all
+```ruby
+current_user.follow(@group)
+current_user.follow(@user1, @user2, @group)            # several at once
+current_user.follow(u1, u2, u3) { |u| u.active? }      # only those the block accepts
 
-    current_user.follow(*array_of_objects_to_follow) # follow an array of objects
-    current_user.unfollow(*array_of_objects_to_follow) # unfollow
+current_user.unfollow(@group)
+current_user.unfollow(u1, u2) { |u| u.followee_of?(current_user) }
+current_user.unfollow_all
 
-or,
+@group.unfollowed(current_user)                        # from the followed side
+@group.unfollowed_all
+```
 
-    @group.unfollowed(current_user)
-    @group.unfollowed_all
+Following yourself, or following something twice, is a no-op.
 
-It's also possible to pass a block:
+### Query relationships
 
-    current_user.follow(u1, u2, u3, u4...) { |user| user.name == 'Jeremy Lin' }
-    current_user.unfollow(u1, u2, u3, u4...) { |user| user.followee_of? @kobe_bryant }
+```ruby
+current_user.follower_of?(@group)      # => true / false
+@group.followee_of?(current_user)
+current_user.following?                # follows anything?
+@group.followed?                       # followed by anyone?
 
-    @group.unfollowed(u1, u2, u3...) { |user| user.ever_follow.include? @some_user }
+@group.all_followers                   # => [user, ...]   (documents, not Follow records)
+current_user.all_followees             # => [group, user, ...]
+@group.followers_by_type("user")       # "user", "User", "child_user" and "ChildUser" all work
+current_user.followees_by_type("group")
+User.followers_of(@group)              # same as @group.followers_by_type("User")
+Group.followees_of(current_user)       # same as current_user.followees_by_type("Group")
 
-You can also judge whether a model is a follower of another model or a model
-is a followee of another model:
+@group.followers_count                 # counts Follow documents
+current_user.followees_count
+@group.followers_count_by_type("user")
+current_user.followees_count_by_type("group")
+@group.followers_cached_count          # cached counter fields, no query
+current_user.followees_cached_count
 
-    current_user.follower_of?(@group)
-    current_user.followee_of?(@group)
+current_user.common_followees?(@other_user)
+current_user.common_followees_with(@other_user)   # => [...]
+@group.common_followers?(@other_group)
+@group.common_followers_with(@other_group)
 
-or whether a model is following some other model and vice versa:
+User.with_max_followees
+User.with_max_followees_by_type('group')
+Group.with_max_followers
+Group.with_max_followers_by_type('user')
+```
 
-    current_user.following?
-    @group.followed?
+Note that `followers` / `followees` themselves return `Follow` documents; use `all_followers` / `all_followees`
+to get the models (e.g. as `receivers:` for [streama](https://github.com/joe1chen/streama)'s `publish_activity`).
 
-Moreover, it's easy to get a model's follower/followee count:
+### Follow history (with `Mongo::Followable::History`)
 
-    current_user.followers_count
-    current_user.followees_count
+```ruby
+current_user.ever_follow               # => [...] everything ever followed
+@group.ever_followed                   # => [...] everyone who ever followed
+current_user.ever_follow?(@group)
+@group.ever_followed?(current_user)
 
-Of course, you can get a list of followers/followees:
-    	
-    User.followers_of(@group)
-    User.followees_of(@group)
+current_user.clear_follow_history!
+@group.clear_followed_histroy!         # sic, see Known issues
+current_user.clear_history!            # both
+```
 
-    @group.all_followers
-    @user.all_followees
+To drop the history fields entirely: `User.all.each { |u| u.unset(:follow_history) }`.
 
-Getting a model's followers/followees by type is also possible:
+## Development
 
-    @group.followers_by_type("user")
-    @user.followees_by_type("group")
+```bash
+# needs a MongoDB on localhost:27017 (e.g. docker run -p 27017:27017 mongo:8.0)
+MONGOID_VERSION=9.0 RAILS_VERSION=8.0 bundle install
+MONGOID_VERSION=9.0 RAILS_VERSION=8.0 bundle exec rspec spec
+```
 
-Dealing with model names:
+`MONGOID_VERSION` and `RAILS_VERSION` select the versions in the `Gemfile` (defaults: Mongoid 7.5, Rails 6.1).
+To add a combination to CI, add a row to `matrix.include` in `.github/workflows/test.yml`.
 
-    @group.followers_by_type("user")
-    @group.followers_by_type("User")
-    @group.followers_by_type("user_post") # both are fine
-    @user.followees_by_type("GroupPost")
+## Known issues
 
-And their count:
+- `with_min_followers`, `with_min_followers_by_type`, `with_min_followees` and `with_min_followees_by_type` use
+  the **maximum** count (`follow_array[-1]`), so they return the same result as the `with_max_*` variants. They
+  also load every document of the class into memory, as do the `with_max_*` methods.
+- The history method is spelled `clear_followed_histroy!` (`clear_history!` calls it correctly).
+- `followers_count` / `followees_count` query the `follows` collection; `*_cached_count` are maintained by
+  mongoid_magic_counter_cache on create/destroy of `Follow` documents only (not on `delete`/bulk removal).
+- `Follow` declares an unused `fixed_ts` field.
+- `Mongo::Authorization` and `Mongo::Confirmation` (`lib/mongo_followable/features`) are empty placeholders.
+- MongoMapper support is untested.
 
-    @group.followers_by_type("user")
-    @group.followers_count_by_type("user")
-    @user.followees_by_type("group")
-    @user.followees_count_by_type("group")
+## History
 
-You can also get a model's follow/followed history:
-
-    @user.ever_follow
-    @group.ever_followed
-
-or to tell if ever follow/followed by someone:
-
-    @user.ever_follow? @some_group
-    @group.ever_followed? @some_user
-
-Sure you can clear the histories:
-
-    @user.clear_history!
-
-    #or more specific:
-
-    @user.clear_follow_history!
-    @group.clear_followed_history!
-
-Another feature is to get a list of models which has the most
-followers/followees:
-
-    User.with_max_followees
-    User.with_min_followees
-    User.with_max_followees_by_type('group')
-    User.with_min_followees_by_type('group')
-    Group.with_max_followers
-    Group.with_min_followers
-    Group.with_max_followers_by_type('user')
-    Group.with_min_followers_by_type('user')
-
-Now you can tell if two models have some common followers/followees by
-following methods:
-
-    @user.common_followees?(@another_user)
-    @user.common_followers?(@group)
-
-And see what the common followers/followees are:
-
-    @user.common_followees_with(@another_user)
-    @user.common_followers_with(@group)
-
-*   Any bug or issue, please send me an email: ustc.flyingfox@gmail.com
-        include Mongo::Followable::History # you have to add this line to enable follow/followed history
-
-
-## TODO
-
-*   inter-models followable #FINISHED#
-*   divide into two parts: followable(being followed) and follower(following
-    others) #FINISHED#
-*   following history/followed history #FINISHED#
-*   most/least followed/following #FINISHED
-*   add authorization to followable models #FINISHED#
-*   common followers/followees #FINISHED#
-*   add support for mongo_mapper in next version #FINISHED#
-*   implement plugins: confirmation, authorization etc.
-
-
-!!If you have any advice, plese do not hesitate to tell me!!
+- **0.4.2+ (DOGOnews fork, 2026)** — GitHub Actions matrix up to Ruby 3.4 / Rails 8.0 / Mongoid 9.0 / MongoDB
+  8.0 (Travis CI removed); specs on RSpec 3; MongoMapper test harness dropped. No changes to `lib/` or the stored
+  schema were needed.
+- **2021** — `integration` (optimized schema) merged into `master`; GitHub Actions replaced Travis.
+- **2014–2018 (`integration`)** — one `Follow` document per relationship, timestamps, cached counters, indexes,
+  Mongoid 2–6 support.
+- **Original** — mongo_followable by Jie Fan, Mongoid and MongoMapper.
 
 ## Thanks
 
-Thanks the author(s) of acts_as_followable, you can find this gem
-[here](https://github.com/xpepermint/acts_as_followable)
+Thanks to the authors of [acts_as_followable](https://github.com/xpepermint/acts_as_followable) and
+[voteable_mongo](https://github.com/vinova/voteable_mongo).
 
-Thanks the author(s) of voteable_mongo, you can find this gem
-[here](https://github.com/vinova/voteable_mongo)
+## Credits
 
-## Copyright
+- Jie Fan — original author
+- [Contributors](https://github.com/joe1chen/mongo_followable/graphs/contributors)
 
-Copyright (c) Jie Fan. See LICENSE.txt for further details. 
-
+Copyright (c) 2011 Jie Fan. Licensed under the MIT license, see [LICENSE.txt](LICENSE.txt).
