@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   build:
     name: >-
-      Mongoid ${{ matrix.mongoid }} - Ruby ${{ matrix.ruby }} - Rails ${{ matrix.rails }} - MongoDB ${{ matrix.mongodb }}
+      Mongoid ${{ matrix.mongoid }}${{ matrix.mongo-driver && format(' (driver {0})', matrix.mongo-driver) || '' }} - Ruby ${{ matrix.ruby }} - Rails ${{ matrix.rails }} - MongoDB ${{ matrix.mongodb }}
     env:
       CI: true
       TESTOPTS: -v
@@ -23,6 +23,8 @@ jobs:
           - { ruby: "3.2", rails: "7.2", mongoid: "9.0", mongodb: "7.0" }
           - { ruby: "3.3", rails: "7.2", mongoid: "9.0", mongodb: "8.0" }
           - { ruby: "3.4", rails: "8.0", mongoid: "9.0", mongodb: "8.0" }
+          # dogo-web's stack against MongoDB 8.0 with only a driver bump
+          - { ruby: "2.7", rails: "6.1", mongoid: "7.5", mongodb: "8.0", mongo-driver: "2.26" }
     steps:
       - name: repo checkout
         uses: actions/checkout@v5
@@ -40,12 +42,14 @@ jobs:
         env:
           MONGOID_VERSION: ${{ matrix.mongoid }}
           RAILS_VERSION: ${{ matrix.rails }}
+          MONGO_DRIVER_VERSION: ${{ matrix.mongo-driver }}
 
       - name: bundle install
         run: bundle install --jobs 4 --retry 3
         env:
           MONGOID_VERSION: ${{ matrix.mongoid }}
           RAILS_VERSION: ${{ matrix.rails }}
+          MONGO_DRIVER_VERSION: ${{ matrix.mongo-driver }}
 
       - name: test
         timeout-minutes: 10
@@ -53,3 +57,4 @@ jobs:
         env:
           MONGOID_VERSION: ${{ matrix.mongoid }}
           RAILS_VERSION: ${{ matrix.rails }}
+          MONGO_DRIVER_VERSION: ${{ matrix.mongo-driver }}
